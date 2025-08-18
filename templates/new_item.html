@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="bg-white rounded-2xl shadow p-4">
+  <h2 class="text-lg font-semibold mb-3">New Item</h2>
+  <form method="post" class="grid md:grid-cols-2 gap-3">
+    <input name="title" placeholder="Title (e.g., Scratched dresser top)" class="border rounded-xl px-3 py-2" required />
+    <input name="vendor" placeholder="Vendor" class="border rounded-xl px-3 py-2" />
+    <input name="po_number" placeholder="PO Number" class="border rounded-xl px-3 py-2" />
+    <input name="sku" placeholder="SKU" class="border rounded-xl px-3 py-2" />
+    <input name="quantity" placeholder="Quantity" type="number" min="1" value="1" class="border rounded-xl px-3 py-2" />
+    <input name="unit_cost" placeholder="Unit Cost (optional)" class="border rounded-xl px-3 py-2" />
+    <textarea name="description" placeholder="Description / notes" class="border rounded-xl px-3 py-2 md:col-span-2"></textarea>
+    <select name="status" class="border rounded-xl px-3 py-2">
+      {% for s in statuses %}
+      <option value="{{ s }}" {% if s=='open' %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+    <button class="bg-blue-600 text-white rounded-xl px-3 py-2 hover:bg-blue-700">Create</button>
+  </form>
+</div>
+{% endblock %}

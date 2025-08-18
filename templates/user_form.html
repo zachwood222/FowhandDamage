@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card glass p-4">
+  <h2 class="text-lg font-semibold mb-3">{{ 'Edit User' if user else 'New User' }}</h2>
+  <form method="post" class="grid md:grid-cols-2 gap-3">
+    <input name="email" value="{{ user.email if user else '' }}" placeholder="Email" class="border rounded-xl px-3 py-2" required />
+    <select name="role" class="border rounded-xl px-3 py-2">
+      {% for r in ['admin','accountant','viewer'] %}
+        <option value="{{ r }}" {% if user and user.role==r %}selected{% endif %}>{{ r }}</option>
+      {% endfor %}
+    </select>
+    <input name="password" type="password" placeholder="{{ 'New password (leave blank to keep)' if user else 'Password' }}" class="border rounded-xl px-3 py-2 md:col-span-2" {% if not user %}required{% endif %} />
+    <button class="bg-indigo-600 text-white rounded-xl px-3 py-2 hover:bg-indigo-700">Save</button>
+  </form>
+</div>
+{% endblock %}

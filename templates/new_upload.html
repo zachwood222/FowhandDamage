@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card glass p-4">
+  <h2 class="text-lg font-semibold">Quick Capture (Mobile)</h2>
+  <p class="text-sm text-slate-600 mb-2">Snap a photo or upload a PDF/invoice. We'll try OCR to extract PO/SKU/Credit and prefill a new Item.</p>
+  <form method="post" enctype="multipart/form-data" class="grid gap-3 md:grid-cols-2">
+    <input name="vendor" placeholder="Vendor (optional)" class="border rounded-xl px-3 py-2" />
+    <input name="title" placeholder="Title (optional)" class="border rounded-xl px-3 py-2" />
+    <input type="file" name="file" accept="image/*,.pdf" capture="environment" class="border rounded-xl px-3 py-2 md:col-span-2" required />
+    <button class="bg-indigo-600 text-white rounded-xl px-3 py-2 hover:bg-indigo-700 md:col-span-2">Upload & OCR</button>
+  </form>
+</div>
+{% if ocr %}
+<div class="bg-white card p-4 mt-4">
+  <h3 class="font-semibold">OCR Result (preview)</h3>
+  <pre class="text-sm whitespace-pre-wrap">{{ ocr.text }}</pre>
+  <div class="mt-2 text-sm">Detected: PO={{ ocr.po or '-' }}, SKU={{ ocr.sku or '-' }}, Credit=${{ ocr.credit or '-' }}</div>
+  <form method="post" action="{{ url_for('create_from_ocr') }}" class="grid gap-2 mt-3">
+    <input type="hidden" name="vendor" value="{{ ocr.vendor or '' }}">
+    <input type="hidden" name="title" value="{{ ocr.title or '' }}">
+    <input type="hidden" name="po" value="{{ ocr.po or '' }}">
+    <input type="hidden" name="sku" value="{{ ocr.sku or '' }}">
+    <input type="hidden" name="credit" value="{{ ocr.credit or '' }}">
+    <input type="hidden" name="attachment_url" value="{{ ocr.attachment_url or '' }}">
+    <button class="px-3 py-2 rounded-xl bg-emerald-600 text-white">Create Item from OCR</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

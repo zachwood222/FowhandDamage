@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="grid md:grid-cols-3 gap-4">
+  <div class="md:col-span-2 bg-white rounded-2xl shadow p-4">
+    <div class="flex items-start justify-between">
+      <div>
+        <h2 class="text-xl font-semibold">{{ item.title or "Item" }}</h2>
+        <div class="text-sm text-slate-600">Vendor: {{ item.vendor or "-" }} · PO: {{ item.po_number or "-" }} · SKU: {{ item.sku or "-" }} · Qty: {{ item.quantity }}</div>
+      </div>
+      <form method="post" action="{{ url_for('update_item_status', item_id=item.id) }}">
+        <select name="status" class="border rounded-xl px-2 py-1 text-sm">
+          {% for s in statuses %}
+            <option value="{{ s }}" {% if s==item.status %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+        <button class="ml-2 px-2 py-1 rounded-lg bg-slate-900 text-white text-sm">Update</button>
+      </form>
+    </div>
+
+    {% if item_vendor and item_vendor.sla_days %}<div class="mt-3 p-3 rounded-xl {% if item.sla_status=='overdue' %}bg-rose-50 text-rose-900 border border-rose-200{% elif item.sla_status=='due' %}bg-amber-50 text-amber-900 border border-amber-200{% else %}bg-emerald-50 text-emerald-900 border border-emerald-200{% endif %}"><strong>SLA Status:</strong> {{ item.sla_status or "n/a" }} ({{ item.sla_days_left }} days left)</div>{% endif %}
+    {% if item.description %}
+      <div class="mt-3 p-3 bg-slate-50 rounded-xl">{{ item.description }}</div>
+    {% endif %}
+
+    <div class="mt-4">
+      <h3 class="font-semibold">Attachments</h3>
+      <form method="post" action="{{ url_for('add_attachment', item_id=item.id) }}" class="flex gap-2 mt-2">
+        <input name="url" placeholder="Google Drive link or URL" class="border rounded-xl px-3 py-2 w-full" required />
+        <input name="name" placeholder="Label (optional)" class="border rounded-xl px-3 py-2" />
+        <button class="px-3 py-2 bg-slate-900 text-white rounded-xl">Add</button>
+      </form>
+      <ul class="mt-2 list-disc list-inside text-sm">
+        {% for a in item.attachments %}
+          <li><a class="text-blue-700 underline" href="{{ a.webview_link or a.drive_file_url or a.filename }}" target="_blank">{{ a.name or a.filename or "Attachment" }}</a> <span class="text-slate-500">({{ a.mime_type or "link" }})</span></li>
+        {% else %}
+          <li class="text-slate-500">No attachments yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="mt-6">
+      <h3 class="font-semibold">Email Activity</h3>
+      <div class="mt-2 space-y-3">
+        {% for e in emails %}
+          <div class="border rounded-xl p-3">
+            <div class="text-sm text-slate-500">{{ e.received_at }} — {{ e.from_address }} → {{ e.to_address }}</div>
+            <div class="font-medium">{{ e.subject }}</div>
+            <div class="text-sm text-slate-700 whitespace-pre-wrap">{{ e.body_snippet }}</div>
+          </div>
+        {% else %}
+          <div class="text-slate-500">No related emails logged.</div>
+        {% endfor %}
+      </div>
+    </div>
+  
+    <div class="mt-6">
+      <h3 class="font-semibold">Contact Vendor</h3>
+      <div class="text-sm text-slate-600">Compose an email with links to all attachments.</div>
+      {% set vendor_email = item_vendor.email if item_vendor else '' %}
+      {% set mail_subject = ("Damage claim: " ~ (item.po_number or '-') ~ " · " ~ (item.sku or '-') ~ " · " ~ (item.vendor or '')) %}
+      {% set links = [] %}
+      {% for a in item.attachments %}{% set _ = links.append(a.webview_link or a.drive_file_url or a.filename) %}{% endfor %}
+      {% set default_body = (item_vendor.email_template if item_vendor and item_vendor.email_template else "Hello {{VENDOR}},\n\nWe are submitting a damage claim for PO {{PO}}, SKU {{SKU}} ({{TITLE}}). Photos:\n{{LINKS}}\n\nPlease advise next steps or issue credit.\n\nThank you,\nFowhand Furniture Claims") %}
+      {% set filled_body = default_body.replace("{{VENDOR}}", item.vendor or "")                                       .replace("{{PO}}", item.po_number or "-")                                       .replace("{{SKU}}", item.sku or "-")                                       .replace("{{TITLE}}", item.title or "")                                       .replace("{{LINKS}}", "\n".join(links)) %}
+      <textarea class="border rounded-xl w-full p-3 text-sm" rows="6">{{ filled_body }}</textarea>
+      <div class="flex gap-2 mt-2">
+        <a class="px-3 py-2 rounded-xl bg-blue-600 text-white" href="mailto:{{ vendor_email }}?subject={{ mail_subject | urlencode }}&body={{ filled_body | urlencode }}">Open in Email</a>
+        {% if role in ['admin','accountant'] %}
+          <form method="post" action="{{ url_for('contact_vendor_webhook', item_id=item.id) }}">
+            <input type="hidden" name="subject" value="{{ mail_subject }}">
+            <input type="hidden" name="body" value="{{ filled_body }}">
+            <input type="hidden" name="to" value="{{ vendor_email }}">
+            <button class="px-3 py-2 rounded-xl bg-slate-900 text-white">Send via Zapier</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+    
+
+    <div class="mt-3 flex gap-2">
+      <form method="post" action="{{ url_for('send_claim', item_id=item.id) }}">
+        <input type="hidden" name="to" value="{{ (item_vendor.email if item_vendor else '') }}">
+        <button class="px-3 py-2 rounded-xl bg-indigo-600 text-white">Email Claim Packet</button>
+      </form>
+    </div>
+    
+  
+    <div class="mt-6">
+      <h3 class="font-semibold">Upload Photo/PDF to Drive (via Zap)</h3>
+      <form method="post" action="{{ url_for('upload_to_drive', item_id=item.id) }}" enctype="multipart/form-data" class="flex gap-2 items-center">
+        <input type="file" name="file" accept="image/*,.pdf" class="border rounded-xl px-3 py-2" required />
+        <button class="px-3 py-2 rounded-xl bg-purple-600 text-white">Upload to Drive via Zap</button>
+      </form>
+      <p class="text-xs text-slate-500 mt-1">This sends the file to your Zap (OUTGOING_WEBHOOK_URL). The Zap uploads to Google Drive and calls back to <code>/zap/attach</code> to attach the Drive link here.</p>
+    </div>
+    
+  </div>
+
+  <div class="bg-white rounded-2xl shadow p-4">
+    <h3 class="font-semibold">Credits on this Item</h3>
+    <ul class="mt-2 space-y-2">
+      {% for ap in applications %}
+        <li class="border rounded-xl px-3 py-2 flex items-center justify-between">
+          <span>${{ '%.2f'|format(ap.amount_applied) }} from {{ ap.credit.reference or 'Credit' }}</span>
+          <span class="text-xs text-slate-500">{{ ap.applied_date.strftime("%Y-%m-%d") }}</span>
+        </li>
+      {% else %}
+        <li class="text-slate-500">No credits applied yet.</li>
+      {% endfor %}
+    </ul>
+
+    <div class="mt-4">
+      <form method="post" action="{{ url_for('apply_credit', item_id=item.id) }}" class="space-y-2">
+        <label class="text-sm">Apply Credit</label>
+        <select name="credit_id" class="border rounded-xl px-2 py-1 w-full">
+          {% for c in open_credits %}
+            <option value="{{ c.id }}">{{ c.reference or 'Credit' }} — Remaining ${{ '%.2f'|format(c.remaining_amount) }}</option>
+          {% endfor %}
+        </select>
+        <input name="amount" placeholder="Amount to apply" class="border rounded-xl px-3 py-2 w-full" />
+        <button class="px-3 py-2 bg-emerald-600 text-white rounded-xl w-full">Apply</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

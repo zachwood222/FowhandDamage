@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="bg-white rounded-2xl shadow p-4">
+  <h2 class="text-lg font-semibold">{{ credit.reference or "Credit" }}</h2>
+  <div class="text-sm text-slate-600">Vendor: {{ credit.vendor or "-" }} · Original ${{ '%.2f'|format(credit.original_amount) }} · Remaining ${{ '%.2f'|format(credit.remaining_amount) }}</div>
+  {% if credit.notes %}<div class="mt-2 bg-slate-50 rounded-xl p-3">{{ credit.notes }}</div>{% endif %}
+</div>
+
+<div class="mt-4 bg-white rounded-2xl shadow p-4">
+  <h3 class="font-semibold mb-2">Applications</h3>
+  <ul class="space-y-2">
+    {% for ap in applications %}
+      <li class="border rounded-xl p-3 flex items-center justify-between">
+        <div>${{ '%.2f'|format(ap.amount_applied) }} → Item {{ ap.item_id }}</div>
+        <div class="text-xs text-slate-500">{{ ap.applied_date.strftime("%Y-%m-%d") }}</div>
+      </li>
+    {% else %}
+      <li class="text-slate-500">No applications yet.</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

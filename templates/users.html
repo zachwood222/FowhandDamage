@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card glass p-4">
+  <div class="flex items-center justify-between">
+    <h2 class="text-lg font-semibold">Users</h2>
+    <a href="{{ url_for('user_new') }}" class="px-3 py-2 rounded-xl bg-indigo-600 text-white">New User</a>
+  </div>
+</div>
+<div class="mt-4 grid gap-3">
+  {% for u in users %}
+    <div class="bg-white card p-4 flex items-center justify-between">
+      <div>{{ u.email }} · <span class="text-slate-600">{{ u.role }}</span></div>
+      <div class="flex gap-2">
+        <a href="{{ url_for('user_edit', user_id=u.id) }}" class="px-3 py-2 rounded-xl bg-slate-900 text-white">Edit</a>
+        {% if u.id != current_user.id %}
+        <form method="post" action="{{ url_for('user_delete', user_id=u.id) }}" onsubmit="return confirm('Delete this user?')">
+          <button class="px-3 py-2 rounded-xl bg-rose-600 text-white">Delete</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  {% else %}
+    <div class="text-center text-slate-500 py-10">No users.</div>
+  {% endfor %}
+</div>
+{% endblock %}

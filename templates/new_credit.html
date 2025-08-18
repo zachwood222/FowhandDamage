@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="bg-white rounded-2xl shadow p-4">
+  <h2 class="text-lg font-semibold mb-3">New Credit</h2>
+  <form method="post" class="grid md:grid-cols-2 gap-3">
+    <input name="reference" placeholder="Reference (e.g., Vendor credit #1234)" class="border rounded-xl px-3 py-2" />
+    <input name="vendor" placeholder="Vendor" class="border rounded-xl px-3 py-2" />
+    <input name="original_amount" placeholder="Original Amount" class="border rounded-xl px-3 py-2" required />
+    <input name="issued_date" placeholder="Issued Date (YYYY-MM-DD)" class="border rounded-xl px-3 py-2" />
+    <textarea name="notes" placeholder="Notes (optional)" class="border rounded-xl px-3 py-2 md:col-span-2"></textarea>
+    <button class="bg-emerald-600 text-white rounded-xl px-3 py-2 hover:bg-emerald-700">Create</button>
+  </form>
+</div>
+{% endblock %}
