@@ -954,7 +954,8 @@ def user_new():
 def user_edit(user_id):
     db = SessionLocal()
     u = db.query(User).get(user_id)
-    if not u:\n        db.close(); abort(404)
+    if not u:
+    db.close(); abort(404)
     if request.method == "POST":
         u.email = request.form.get("email","").strip().lower()
         u.role = request.form.get("role","viewer")
@@ -998,7 +999,10 @@ def import_vendors():
             db.add(v)
         v.email = row.get("email") or v.email
         v.phone = row.get("phone") or v.phone
-        try:\n            v.sla_days = int(row.get("sla_days") or v.sla_days or 0)\n        except Exception:\n            pass\n        v.notes = row.get("notes") or v.notes
+        try:
+    v.sla_days = int(row.get("sla_days") or v.sla_days or 0)
+except Exception:
+    pass        v.notes = row.get("notes") or v.notes
         v.email_template = row.get("email_template") or v.email_template
         db.commit(); count += 1
     db.close()
@@ -1296,7 +1300,8 @@ def zap_attach():
         return {"error": "missing item_id/link"}, 400
     db = SessionLocal()
     it = db.query(Item).get(int(item_id))
-    if not it:\n        db.close(); return {"error":"item not found"}, 404
+    if not it:
+    db.close(); return {"error":"item not found"}, 404
     att = Attachment(item_id=it.id, drive_file_id=drive_file_id, drive_file_url=link, webview_link=link, filename=name, mime_type=mime_type, source="zap")
     db.add(att); db.commit(); db.close()
     return {"ok": True}
