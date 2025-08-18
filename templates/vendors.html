@@ -1,32 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="bg-white rounded-2xl shadow p-4"><form class="flex items-center gap-2" method="post" action="{{ url_for('import_vendors') }}" enctype="multipart/form-data"><input type="file" name="file" accept=".csv" class="border rounded-xl px-3 py-2" required /><button class="px-3 py-2 rounded-xl bg-slate-700 text-white">Import Vendors (CSV)</button></form>
-  <div class="flex items-center justify-between">
+<div class="bg-white card p-4">
+  <div class="flex justify-between items-center">
     <h2 class="text-lg font-semibold">Vendors</h2>
-    {% if role in ['admin','accountant'] %}
-    <a href="{{ url_for('vendor_new') }}" class="px-3 py-2 rounded-xl bg-blue-600 text-white">New Vendor</a>
-    {% endif %}
+    <a href="{{ url_for('vendor_new') }}" class="px-3 py-2 rounded-xl bg-emerald-600 text-white">New Vendor</a>
   </div>
-</div>
-
-<div class="mt-4 grid gap-3">
-  {% for v in vendors %}
-    <div class="bg-white rounded-2xl shadow p-4"><form class="flex items-center gap-2" method="post" action="{{ url_for('import_vendors') }}" enctype="multipart/form-data"><input type="file" name="file" accept=".csv" class="border rounded-xl px-3 py-2" required /><button class="px-3 py-2 rounded-xl bg-slate-700 text-white">Import Vendors (CSV)</button></form>
-      <div class="flex items-start justify-between">
-        <div>
-          <div class="font-semibold">{{ v.name }}</div>
-          <div class="text-sm text-slate-600">
-            Email: {{ v.email or '-' }} · Phone: {{ v.phone or '-' }} · SLA: {{ v.sla_days or 0 }} days
-          </div>
-          {% if v.notes %}<div class="text-sm text-slate-700 mt-1">{{ v.notes }}</div>{% endif %}
-        </div>
-        {% if role in ['admin','accountant'] %}
-        <a href="{{ url_for('vendor_edit', vendor_id=v.id) }}" class="px-3 py-2 rounded-xl bg-slate-900 text-white">Edit</a>
-        {% endif %}
-      </div>
-    </div>
-  {% else %}
-    <div class="text-center text-slate-500 py-10">No vendors yet.</div>
-  {% endfor %}
+  <table class="w-full text-sm mt-3">
+    <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>SLA days</th><th></th></tr></thead>
+    <tbody>
+      {% for v in vendors %}
+      <tr class="hover:bg-slate-50">
+        <td>{{ v.name }}</td><td>{{ v.email }}</td><td>{{ v.phone }}</td><td>{{ v.sla_days }}</td>
+        <td><a class="text-indigo-700 underline" href="{{ url_for('vendor_edit', vendor_id=v.id) }}">Edit</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endblock %}

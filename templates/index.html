@@ -1,31 +1,65 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="bg-white rounded-2xl shadow p-4">
-  <form method="get" class="grid md:grid-cols-7 gap-3">
-    <input name="q" value="{{ request.args.get('q','') }}" placeholder="Search PO / SKU / Title" class="border rounded-xl px-3 py-2 md:col-span-2" />
-    <select name="status" class="border rounded-xl px-3 py-2">
-      <option value="">All Statuses</option>
+<div class="card glass p-4">
+  <form class="grid md:grid-cols-6 gap-3 items-end">
+    <input class="border rounded-xl px-3 py-2" name="q" value="{{ request.args.get('q','') }}" placeholder="Search title/PO/SKU">
+    <select class="border rounded-xl px-3 py-2" name="status">
+      <option value="">All statuses</option>
       {% for s in statuses %}
-        <option value="{{ s }}" {% if s == request.args.get('status') %}selected{% endif %}>{{ s }}</option>
+        <option value="{{ s }}" {% if request.args.get('status')==s %}selected{% endif %}>{{ s }}</option>
       {% endfor %}
     </select>
-    <input name="vendor" value="{{ request.args.get('vendor','') }}" placeholder="Vendor (optional)" class="border rounded-xl px-3 py-2" />
-    <input name="date_from" value="{{ request.args.get('date_from','') }}" placeholder="From (YYYY-MM-DD)" class="border rounded-xl px-3 py-2" /><select name="sla" class="border rounded-xl px-3 py-2"><option value="">SLA: All</option><option value="overdue" {% if request.args.get("sla")=="overdue" %}selected{% endif %}>Overdue</option><option value="due" {% if request.args.get("sla")=="due" %}selected{% endif %}>Due soon</option><option value="ok" {% if request.args.get("sla")=="ok" %}selected{% endif %}>OK</option></select><button class="bg-slate-900 text-white rounded-xl px-3 py-2">Filter</button>
+    <input class="border rounded-xl px-3 py-2" name="vendor" value="{{ request.args.get('vendor','') }}" placeholder="Vendor">
+    <input class="border rounded-xl px-3 py-2" name="date_from" type="date" value="{{ request.args.get('date_from','') }}">
+    <select class="border rounded-xl px-3 py-2" name="sla">
+      <option value="">SLA: All</option>
+      <option value="overdue" {% if request.args.get('sla')=='overdue' %}selected{% endif %}>Overdue</option>
+      <option value="due" {% if request.args.get('sla')=='due' %}selected{% endif %}>Due soon</option>
+      <option value="ok" {% if request.args.get('sla')=='ok' %}selected{% endif %}>OK</option>
+    </select>
+    <button class="bg-slate-900 text-white rounded-xl px-3 py-2">Filter</button>
   </form>
 </div>
 
-{% if role in ["admin","accountant"] %}<form method="post" action="{{ url_for('bulk_apply_credit') }}" class="bg-white rounded-2xl shadow p-3 mb-3"><div class="grid md:grid-cols-4 gap-2 items-end"><div class="text-sm text-slate-700">Bulk apply credit to selected items:</div><select name="credit_id" class="border rounded-xl px-2 py-2"><option value="">Choose credit</option>{% for c in open_credits %}<option value="{{ c.id }}">{{ c.reference or "Credit" }} — ${{ "%.2f"|format(c.remaining_amount) }}</option>{% endfor %}</select><input name="total_amount" placeholder="Total amount to distribute" class="border rounded-xl px-3 py-2" /><button class="bg-emerald-600 text-white rounded-xl px-3 py-2">Apply Evenly</button></div></form>{% endif %}<div class="mt-4 grid grid-cols-1 gap-3">
-  {% for it in items %}
-    <div class="bg-white rounded-2xl shadow px-4 py-3 flex items-start justify-between">{% if role in ["admin","accountant"] %}<input type="checkbox" name="item_ids" form="bulk-form" value="{{ it.id }}" class="mt-2 mr-3">{% endif %}<a href="{{ url_for('item_detail', item_id=it.id) }}" class="flex-1">
-      <div>
-        <div class="text-lg font-semibold">{{ it.title or "Item" }} · <span class="text-slate-500">{{ it.vendor or "Unknown Vendor" }}</span></div>
-        <div class="text-sm text-slate-600">PO: {{ it.po_number or "-" }} · SKU: {{ it.sku or "-" }} · Qty: {{ it.quantity or 1 }}</div>
-        <div class="text-xs text-slate-500 mt-1">Updated {{ it.updated_at.strftime("%Y-%m-%d %H:%M") }}</div>{% if it.sla_status=="overdue" %}<span class="badge badge-red ml-2">SLA Overdue</span>{% elif it.sla_status=="due" %}<span class="badge badge-amber ml-2">Due Soon</span>{% endif %}
-      </div>
-      <span class="px-2 py-1 rounded-lg text-xs font-semibold {% if it.status=='open' %}bg-rose-100 text-rose-800{% elif it.status=='in-progress' %}bg-amber-100 text-amber-800{% elif it.status=='awaiting-credit' %}bg-indigo-100 text-indigo-800{% elif it.status=='credited' %}bg-emerald-100 text-emerald-800{% else %}bg-slate-100 text-slate-800{% endif %}">{{ it.status }}</span>
-    </a></div>
-  {% else %}
-    <div class="text-center text-slate-500 py-10">No items yet. Create one or hook up Zapier.</div>
-  {% endfor %}
+<div class="mt-4 bg-white card p-4 overflow-x-auto">
+  <div class="flex justify-between items-center mb-2">
+    <h3 class="font-semibold">Items</h3>
+    <a href="{{ url_for('new_item') }}" class="px-3 py-2 rounded-xl bg-emerald-600 text-white">New Item</a>
+  </div>
+  <form method="post" action="{{ url_for('bulk_apply_credit') }}">
+    <div class="flex gap-2 items-center my-2">
+      <select name="credit_id" class="border rounded-xl px-3 py-2">
+        <option value="">Apply credit…</option>
+        {% for c in open_credits %}
+          <option value="{{ c.id }}">{{ c.vendor or 'Vendor' }} — {{ c.reference or 'ref' }} — ${{ '%.2f'|format(c.remaining_amount) }}</option>
+        {% endfor %}
+      </select>
+      <input name="total_amount" placeholder="Total $" class="border rounded-xl px-3 py-2 w-36">
+      <button class="px-3 py-2 rounded-xl bg-purple-600 text-white">Apply Evenly</button>
+    </div>
+
+    <table class="w-full text-sm">
+      <thead class="text-left text-slate-600">
+        <tr><th></th><th>ID</th><th>Title</th><th>Vendor</th><th>PO</th><th>SKU</th><th>Status</th><th>SLA</th><th>Created</th></tr>
+      </thead>
+      <tbody>
+      {% for it in items %}
+        <tr class="hover:bg-slate-50">
+          <td><input type="checkbox" name="item_ids" value="{{ it.id }}"></td>
+          <td><a class="text-indigo-700 underline" href="{{ url_for('item_detail', item_id=it.id) }}">#{{ it.id }}</a></td>
+          <td>{{ it.title }}</td>
+          <td>{{ it.vendor }}</td>
+          <td>{{ it.po_number }}</td>
+          <td>{{ it.sku }}</td>
+          <td>
+            <span class="badge {% if it.sla_status=='overdue' %}overdue{% elif it.sla_status=='due' %}due{% else %}ok{% endif %}">{{ it.status }}</span>
+          </td>
+          <td>{% if it.sla_status %}<span class="badge {{ it.sla_status }}">{{ it.sla_status }}{% if it.sla_days_left is not none %} ({{ it.sla_days_left }}){% endif %}</span>{% else %}-{% endif %}</td>
+          <td>{{ it.created_at.strftime('%Y-%m-%d') if it.created_at }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </form>
 </div>
 {% endblock %}

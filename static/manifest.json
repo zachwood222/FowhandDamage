@@ -3,8 +3,8 @@
   "short_name": "DamageTracker",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f8fafc",
   "theme_color": "#0f172a",
+  "background_color": "#f8fafc",
   "icons": [
     {
       "src": "/static/icons/icon-192.png",

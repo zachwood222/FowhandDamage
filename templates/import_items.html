@@ -1,22 +1,28 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="bg-white rounded-2xl shadow p-4">
-  <h2 class="text-lg font-semibold">Import Items (CSV)</h2>
-  <p class="text-sm text-slate-600 mb-2">Columns: title,vendor,po_number,sku,quantity,unit_cost,description,status,attachments</p>
-  <p class="text-sm mb-3">Download sample: <a class="underline text-blue-700" href="{{ url_for('static', filename='sample_items.csv') }}">sample_items.csv</a></p>
-  <form method="post" enctype="multipart/form-data" class="space-y-3">
-    <input type="file" name="file" accept=".csv" class="border rounded-xl px-3 py-2" required />
-    <button class="bg-blue-600 text-white rounded-xl px-3 py-2">Upload</button>
-  </form>
-</div>
-
-<div class="bg-white rounded-2xl shadow p-4 mt-4">
-  <h2 class="text-lg font-semibold">Import Credits (CSV)</h2>
-  <p class="text-sm text-slate-600 mb-2">Columns: reference,vendor,original_amount,issued_date,notes</p>
-  <p class="text-sm mb-3">Download sample: <a class="underline text-blue-700" href="{{ url_for('static', filename='sample_credits.csv') }}">sample_credits.csv</a></p>
-  <form method="post" action="{{ url_for('import_credits') }}" enctype="multipart/form-data" class="space-y-3">
-    <input type="file" name="file" accept=".csv" class="border rounded-xl px-3 py-2" required />
-    <button class="bg-emerald-600 text-white rounded-xl px-3 py-2">Upload</button>
-  </form>
+<div class="grid md:grid-cols-3 gap-4">
+  <div class="bg-white card p-4 md:col-span-2">
+    <h2 class="font-semibold mb-2">Import Items (CSV)</h2>
+    <form method="post" enctype="multipart/form-data" class="flex gap-2 items-center">
+      <input type="file" name="file" accept=".csv" class="border rounded-xl px-3 py-2" required>
+      <button class="px-3 py-2 rounded-xl bg-slate-900 text-white">Import</button>
+    </form>
+    <p class="text-xs text-slate-500 mt-2">Columns: title,vendor,po_number,sku,quantity,unit_cost,description,status,attachments (comma-separated links)</p>
+    <hr class="my-4">
+    <h2 class="font-semibold mb-2">Import Credits (CSV)</h2>
+    <form method="post" action="{{ url_for('import_credits') }}" enctype="multipart/form-data" class="flex gap-2 items-center">
+      <input type="file" name="file" accept=".csv" class="border rounded-xl px-3 py-2" required>
+      <button class="px-3 py-2 rounded-xl bg-emerald-600 text-white">Import Credits</button>
+    </form>
+    <p class="text-xs text-slate-500 mt-2">Columns: reference,vendor,original_amount,issued_date(YYYY-MM-DD),notes</p>
+  </div>
+  <div class="bg-white card p-4">
+    <h2 class="font-semibold mb-2">Import Vendors (CSV)</h2>
+    <form method="post" action="{{ url_for('import_vendors') }}" enctype="multipart/form-data" class="flex gap-2 items-center">
+      <input type="file" name="file" accept=".csv" class="border rounded-xl px-3 py-2" required>
+      <button class="px-3 py-2 rounded-xl bg-purple-600 text-white">Import Vendors</button>
+    </form>
+    <p class="text-xs text-slate-500 mt-2">Columns: name,email,phone,sla_days,notes,email_template</p>
+  </div>
 </div>
 {% endblock %}

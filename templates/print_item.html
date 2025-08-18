@@ -1,55 +1,25 @@
 <!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Claim Packet · Item {{ item.id }}</title>
-  <style>
-    body { font-family: Arial, sans-serif; color: #111; }
-    h1 { font-size: 20px; margin: 0 0 4px; }
-    .muted { color: #555; }
-    .section { margin: 12px 0; }
-    .box { border: 1px solid #ddd; padding: 8px; border-radius: 6px; }
-    .small { font-size: 12px; }
-    ul { margin: 6px 0; }
-  </style>
+<html><head><meta charset="utf-8"><title>Claim Packet</title>
+<style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,sans-serif;padding:24px} h1{font-size:20px}</style>
 </head>
 <body>
-  <h1>Damage Claim Packet</h1>
-  <div class="muted small">Generated: {{ now }}</div>
-  <div class="section box">
-    <strong>Item:</strong> {{ item.title or 'Item' }}<br>
-    <strong>Vendor:</strong> {{ item.vendor or '-' }}{% if vendor %} (Contact: {{ vendor.email or '-' }}, {{ vendor.phone or '-' }}){% endif %}<br>
-    <strong>PO:</strong> {{ item.po_number or '-' }} · <strong>SKU:</strong> {{ item.sku or '-' }} · <strong>Qty:</strong> {{ item.quantity }}<br>
-    <strong>Status:</strong> {{ item.status }} · <strong>Created:</strong> {{ item.created_at }} · <strong>Updated:</strong> {{ item.updated_at }}
-  </div>
-
-  {% if item.description %}
-  <div class="section box">
-    <strong>Description/Notes</strong><br>
-    <div>{{ item.description }}</div>
-  </div>
-  {% endif %}
-
-  <div class="section box">
-    <strong>Attachments</strong>
-    <ul class="small">
-      {% for a in item.attachments %}
-      <li>{{ a.name or a.filename or 'Attachment' }} — <a href="{{ a.webview_link or a.drive_file_url or a.filename }}">{{ a.webview_link or a.drive_file_url or a.filename }}</a></li>
-      {% else %}
-      <li>No attachments on file.</li>
-      {% endfor %}
-    </ul>
-  </div>
-
-  <div class="section box">
-    <strong>Credits Applied</strong>
-    <ul class="small">
-      {% for ap in applications %}
-      <li>${{ '%.2f'|format(ap.amount_applied) }} from {{ ap.credit.reference or 'Credit' }} ({{ ap.applied_date.strftime('%Y-%m-%d') }})</li>
-      {% else %}
-      <li>No credits applied yet.</li>
-      {% endfor %}
-    </ul>
-  </div>
-</body>
-</html>
+<h1>Damage Claim Packet — Item {{ item.id }}</h1>
+<div>{{ now }}</div>
+<h3>Details</h3>
+<div>Title: {{ item.title or 'Item' }}</div>
+<div>Vendor: {{ vendor.name if vendor else item.vendor or '-' }}</div>
+<div>PO: {{ item.po_number or '-' }} • SKU: {{ item.sku or '-' }} • Qty: {{ item.quantity }}</div>
+<div>Status: {{ item.status }}</div>
+<h3>Attachments</h3>
+<ul>
+{% for a in item.attachments %}
+<li>{{ a.name or a.filename or 'Attachment' }} — {{ a.webview_link or a.drive_file_url or a.filename }}</li>
+{% else %}<li>—</li>{% endfor %}
+</ul>
+<h3>Credits Applied</h3>
+<ul>
+{% for ap in applications %}
+<li>${{ '%.2f'|format(ap.amount_applied) }} from {{ ap.credit.reference if ap.credit else 'Credit' }} on {{ ap.applied_date.strftime('%Y-%m-%d') }}</li>
+{% else %}<li>—</li>{% endfor %}
+</ul>
+</body></html>

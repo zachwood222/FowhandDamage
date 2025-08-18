@@ -1,37 +1,21 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Login · Damage Tracker</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body class="min-h-screen bg-gradient-to-tr from-slate-50 to-slate-100 flex items-center">
-    <div class="max-w-md mx-auto w-full p-6">
-      <div class="bg-white shadow rounded-2xl p-6">
-        <h1 class="text-xl font-semibold mb-1">Sign in</h1>
-        <p class="text-sm text-slate-600 mb-3">Use your account email and password.</p>
-        {% if error %}
-          <div class="bg-rose-50 border border-rose-200 text-rose-800 rounded-xl px-4 py-2 mb-3">{{ error }}</div>
-        {% endif %}
-        {% if show_bootstrap %}
-          <div class="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl px-4 py-2 mb-3">
-            No users yet. Create the first admin account.
-          </div>
-          <form method="post" action="{{ url_for('bootstrap_admin') }}" class="space-y-3">
-            <input name="email" type="email" placeholder="Admin email" class="w-full border rounded-xl px-3 py-2" required />
-            <input name="password" type="password" placeholder="Admin password" class="w-full border rounded-xl px-3 py-2" required />
-            <button class="w-full bg-indigo-600 text-white rounded-xl px-3 py-2 hover:bg-indigo-700">Create Admin</button>
-          </form>
-          <div class="my-4 border-t"></div>
-        {% endif %}
-        <form method="post" class="space-y-3">
-          <input name="email" type="email" placeholder="Email" class="w-full border rounded-xl px-3 py-2" required />
-          <input name="password" type="password" placeholder="Password" class="w-full border rounded-xl px-3 py-2" required />
-          <button class="w-full bg-blue-600 text-white rounded-xl px-3 py-2 hover:bg-blue-700">Login</button>
-        </form>
-      </div>
-      <p class="text-center text-slate-500 text-sm mt-3">Ask an admin if you need an account.</p>
-    </div>
-  </body>
-</html>
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-md mx-auto card glass p-6">
+  <h2 class="text-xl font-semibold mb-3">Sign in</h2>
+  {% if show_bootstrap %}
+    <div class="text-sm mb-3">No users yet — create your first <b>admin</b>.</div>
+    <form method="post" action="{{ url_for('bootstrap_admin') }}" class="grid gap-3">
+      <input name="email" type="email" placeholder="Email" class="border rounded-xl px-3 py-2" required>
+      <input name="password" type="password" placeholder="Password" class="border rounded-xl px-3 py-2" required>
+      <button class="bg-indigo-600 text-white rounded-xl px-3 py-2">Create Admin & Sign in</button>
+    </form>
+    <hr class="my-4">
+  {% endif %}
+  <form method="post" class="grid gap-3">
+    {% if error %}<div class="text-rose-700 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2">{{ error }}</div>{% endif %}
+    <input name="email" type="email" placeholder="Email" class="border rounded-xl px-3 py-2" required>
+    <input name="password" type="password" placeholder="Password" class="border rounded-xl px-3 py-2" required>
+    <button class="bg-slate-900 text-white rounded-xl px-3 py-2">Sign in</button>
+  </form>
+</div>
+{% endblock %}

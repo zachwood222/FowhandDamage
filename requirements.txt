@@ -4,10 +4,7 @@ psycopg[binary]==3.2.1
 python-dotenv==1.0.1
 gunicorn==22.0.0
 requests==2.32.3
-email-normalize==2.0.0
-
 reportlab==4.2.2
-
 pytesseract==0.3.13
 Pillow==10.4.0
 pypdf==4.3.1

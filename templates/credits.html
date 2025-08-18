@@ -1,24 +1,27 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="bg-white rounded-2xl shadow p-4">
-  <div class="flex items-center justify-between"><a href="{{ url_for('export_credits_csv') }}" class="px-3 py-2 rounded-xl bg-slate-200 hover:bg-slate-300">Export CSV</a>
-    <h2 class="text-lg font-semibold">Credits</h2>
-    <a href="{{ url_for('new_credit') }}" class="px-3 py-2 rounded-xl bg-emerald-600 text-white">New Credit</a>
+<div class="grid md:grid-cols-2 gap-4">
+  <div class="bg-white card p-4">
+    <h2 class="font-semibold mb-2">Create Credit</h2>
+    <form method="post" class="grid gap-2">
+      <input name="reference" placeholder="Reference" class="border rounded-xl px-3 py-2">
+      <input name="vendor" placeholder="Vendor" class="border rounded-xl px-3 py-2">
+      <input name="original_amount" placeholder="Amount $" class="border rounded-xl px-3 py-2">
+      <input type="date" name="issued_date" class="border rounded-xl px-3 py-2">
+      <textarea name="notes" placeholder="Notes" class="border rounded-xl px-3 py-2"></textarea>
+      <button class="px-3 py-2 rounded-xl bg-emerald-600 text-white">Create</button>
+    </form>
   </div>
-</div>
-
-<div class="mt-4 grid gap-3">
-  {% for c in credits %}
-    <div class="bg-white rounded-2xl shadow p-4 flex items-center justify-between">
-      <div>
-        <div class="font-semibold">{{ c.reference or "Credit" }} · {{ c.vendor or "Unknown Vendor" }}</div>
-        <div class="text-sm text-slate-600">Original ${{ '%.2f'|format(c.original_amount) }} · Remaining ${{ '%.2f'|format(c.remaining_amount) }} · Issued {{ c.issued_date.strftime("%Y-%m-%d") if c.issued_date else "-" }}</div>
-        {% if c.notes %}<div class="text-sm text-slate-700 mt-1">{{ c.notes }}</div>{% endif %}
-      </div>
-      <a href="{{ url_for('credit_detail', credit_id=c.id) }}" class="px-3 py-2 rounded-xl bg-slate-900 text-white">Open</a>
-    </div>
-  {% else %}
-    <div class="text-center text-slate-500 py-10">No credits yet.</div>
-  {% endfor %}
+  <div class="bg-white card p-4">
+    <h2 class="font-semibold mb-2">Credits</h2>
+    <table class="w-full text-sm">
+      <thead><tr><th>Vendor</th><th>Reference</th><th>Remaining</th><th>Issued</th></tr></thead>
+      <tbody>
+        {% for c in credits %}
+          <tr class="hover:bg-slate-50"><td>{{ c.vendor }}</td><td>{{ c.reference }}</td><td>${{ '%.2f'|format(c.remaining_amount) }}</td><td>{{ c.issued_date }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 {% endblock %}

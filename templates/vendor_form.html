@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="bg-white rounded-2xl shadow p-4">
-  <h2 class="text-lg font-semibold mb-3">{{ 'Edit Vendor' if vendor else 'New Vendor' }}</h2>
-  <form method="post" class="grid md:grid-cols-2 gap-3">
-    <input name="name" value="{{ vendor.name if vendor else '' }}" placeholder="Vendor name" class="border rounded-xl px-3 py-2" required />
-    <input name="email" value="{{ vendor.email if vendor else '' }}" placeholder="Claims email (optional)" class="border rounded-xl px-3 py-2" />
-    <input name="phone" value="{{ vendor.phone if vendor else '' }}" placeholder="Phone (optional)" class="border rounded-xl px-3 py-2" />
-    <input name="sla_days" value="{{ vendor.sla_days if vendor else '' }}" placeholder="SLA days (e.g., 14)" class="border rounded-xl px-3 py-2" />
-    <textarea name="email_template" placeholder="Default email body template (use {{PO}}, {{SKU}}, {{TITLE}}, {{LINKS}})" class="border rounded-xl px-3 py-2 md:col-span-2">{{ vendor.email_template if vendor else '' }}</textarea>
-    <textarea name="notes" placeholder="Internal notes" class="border rounded-xl px-3 py-2 md:col-span-2">{{ vendor.notes if vendor else '' }}</textarea>
-    <button class="bg-blue-600 text-white rounded-xl px-3 py-2 hover:bg-blue-700">Save</button>
+<div class="bg-white card p-6 max-w-2xl mx-auto">
+  <h2 class="text-lg font-semibold mb-3">{{ 'Edit' if vendor else 'New' }} Vendor</h2>
+  <form method="post" class="grid gap-3">
+    <input name="name" value="{{ vendor.name if vendor else '' }}" placeholder="Vendor name" class="border rounded-xl px-3 py-2" required>
+    <input name="email" value="{{ vendor.email if vendor else '' }}" placeholder="Email" class="border rounded-xl px-3 py-2">
+    <input name="phone" value="{{ vendor.phone if vendor else '' }}" placeholder="Phone" class="border rounded-xl px-3 py-2">
+    <input name="sla_days" value="{{ vendor.sla_days if vendor else '' }}" placeholder="SLA days" class="border rounded-xl px-3 py-2">
+    <textarea name="email_template" placeholder="Default email template" class="border rounded-xl px-3 py-2"></textarea>
+    <textarea name="notes" placeholder="Notes" class="border rounded-xl px-3 py-2"></textarea>
+    <button class="bg-slate-900 text-white px-3 py-2 rounded-xl">Save</button>
   </form>
 </div>
 {% endblock %}

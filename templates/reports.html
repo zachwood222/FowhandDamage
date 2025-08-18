@@ -3,7 +3,7 @@
 <div class="card glass p-4">
   <div class="flex items-center justify-between">
     <h2 class="text-lg font-semibold">Reports</h2>
-    <div class="text-sm text-slate-600">Live data; filters coming soon.</div>
+    <div class="text-sm text-slate-600">Live data</div>
   </div>
 </div>
 
@@ -24,35 +24,25 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-async function fetchJSON(url){ const r = await fetch(url); return await r.json(); }
-
+async function get(url){ const r = await fetch(url); return await r.json(); }
 (async () => {
-  const credits = await fetchJSON('{{ url_for("credits_by_vendor") }}');
-  const items = await fetchJSON('{{ url_for("items_by_month") }}');
-  const days = await fetchJSON('{{ url_for("avg_days_to_credit_by_vendor") }}');
+  const credits = await get('{{ url_for("credits_by_vendor") }}');
+  const items = await get('{{ url_for("items_by_month") }}');
+  const days = await get('{{ url_for("avg_days_to_credit_by_vendor") }}');
 
   new Chart(document.getElementById('chartCreditsByVendor'), {
-    type: 'bar',
-    data: {
-      labels: credits.labels,
-      datasets: [
-        {label: 'Used', data: credits.used, backgroundColor: 'rgba(16,185,129,0.6)'},
-        {label: 'Remaining', data: credits.remaining, backgroundColor: 'rgba(59,130,246,0.6)'}
-      ]
-    },
-    options: {responsive: true, plugins:{legend:{position:'bottom'}}}
+    type:'bar', data:{labels:credits.labels, datasets:[
+      {label:'Used', data:credits.used},
+      {label:'Remaining', data:credits.remaining}
+    ]}, options:{responsive:true, plugins:{legend:{position:'bottom'}}}
   });
-
   new Chart(document.getElementById('chartItemsByMonth'), {
-    type: 'line',
-    data: { labels: items.labels, datasets: [{label:'Items', data: items.counts}] },
-    options: { responsive: true, plugins:{legend:{display:false}} }
+    type:'line', data:{labels:items.labels, datasets:[{label:'Items', data:items.counts}]},
+    options:{responsive:true, plugins:{legend:{display:false}}}
   });
-
   new Chart(document.getElementById('chartAvgDaysToCredit'), {
-    type: 'bar',
-    data: { labels: days.labels, datasets: [{label:'Avg days', data: days.avg_days}] },
-    options: { responsive: true, plugins:{legend:{display:false}} }
+    type:'bar', data:{labels:days.labels, datasets:[{label:'Avg days', data:days.avg_days}]},
+    options:{responsive:true, plugins:{legend:{display:false}}}
   });
 })();
 </script>
