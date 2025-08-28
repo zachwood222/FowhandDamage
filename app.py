@@ -32,6 +32,9 @@ OUTGOING_WEBHOOK_URL = os.getenv("OUTGOING_WEBHOOK_URL", "")
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
 
+UPLOAD_FOLDER = os.path.join(app.root_path, "static", "uploads")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 engine = create_engine(
     DATABASE_URL,
     echo=False,
@@ -95,6 +98,7 @@ class Item(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     attachments = relationship("Attachment", back_populates="item", cascade="all, delete-orphan")
     applications = relationship("CreditApplication", back_populates="item", cascade="all, delete-orphan")
+    notes = relationship("Note", back_populates="item", cascade="all, delete-orphan")
 
 class Attachment(Base):
     __tablename__ = "attachments"
@@ -109,6 +113,14 @@ class Attachment(Base):
     source = Column(String(64))  # zap, upload, email
     created_at = Column(DateTime, default=datetime.utcnow)
     item = relationship("Item", back_populates="attachments")
+
+class Note(Base):
+    __tablename__ = "notes"
+    id = Column(Integer, primary_key=True)
+    item_id = Column(Integer, ForeignKey("items.id", ondelete="CASCADE"), index=True)
+    content = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    item = relationship("Item", back_populates="notes")
 
 class Credit(Base):
     __tablename__ = "credits"
@@ -392,6 +404,58 @@ def add_attachment(item_id):
     db.close()
     flash("Attachment added.")
     return redirect(url_for("item_detail", item_id=item_id))
+
+@app.route("/item/<int:item_id>/upload", methods=["POST"])
+@require_role("admin", "accountant")
+def upload_file(item_id):
+    db = SessionLocal()
+    it = db.query(Item).get(item_id)
+    if not it:
+        db.close()
+        abort(404)
+    f = request.files.get("file")
+    if not f or not f.filename:
+        db.close()
+        flash("No file provided.")
+        return redirect(url_for("item_detail", item_id=item_id))
+    filename = secure_filename(f.filename)
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    path = os.path.join(UPLOAD_FOLDER, filename)
+    f.save(path)
+    url = url_for("static", filename=f"uploads/{filename}")
+    att = Attachment(item_id=item_id, webview_link=url, filename=filename, name=filename, mime_type=f.mimetype or "file", source="upload")
+    db.add(att); db.commit(); db.close()
+    flash("File uploaded.")
+    return redirect(url_for("item_detail", item_id=item_id))
+
+@app.route("/item/<int:item_id>/notes", methods=["POST"])
+@require_role("admin", "accountant")
+def add_note(item_id):
+    db = SessionLocal()
+    it = db.query(Item).get(item_id)
+    if not it:
+        db.close()
+        abort(404)
+    content = (request.form.get("content") or "").strip()
+    if content:
+        note = Note(item_id=item_id, content=content)
+        db.add(note); db.commit()
+    db.close()
+    flash("Note added.")
+    return redirect(url_for("item_detail", item_id=item_id))
+
+@app.route("/item/<int:item_id>/delete", methods=["POST"])
+@require_role("admin")
+def delete_item(item_id):
+    db = SessionLocal()
+    it = db.query(Item).get(item_id)
+    if not it:
+        db.close()
+        abort(404)
+    db.delete(it)
+    db.commit(); db.close()
+    flash("Item deleted.")
+    return redirect(url_for("index"))
 
 # ---------- Credits ----------
 
