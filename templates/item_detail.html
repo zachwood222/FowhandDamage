@@ -4,12 +4,19 @@
   <div class="md:col-span-2 bg-white card p-4">
     <div class="flex justify-between items-center">
       <h2 class="text-lg font-semibold">Item #{{ item.id }} — {{ item.title }}</h2>
-      <form method="post" action="{{ url_for('update_item_status', item_id=item.id) }}" class="flex gap-2 items-center">
-        <select name="status" class="border rounded-xl px-3 py-1.5">
-          {% for s in statuses %}<option value="{{ s }}" {% if item.status==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
-        </select>
-        <button class="px-3 py-1.5 rounded-xl bg-slate-900 text-white">Save</button>
-      </form>
+      <div class="flex gap-2 items-center">
+        <form method="post" action="{{ url_for('update_item_status', item_id=item.id) }}" class="flex gap-2 items-center">
+          <select name="status" class="border rounded-xl px-3 py-1.5">
+            {% for s in statuses %}<option value="{{ s }}" {% if item.status==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+          </select>
+          <button class="px-3 py-1.5 rounded-xl bg-slate-900 text-white">Save</button>
+        </form>
+        {% if role == 'admin' %}
+        <form method="post" action="{{ url_for('delete_item', item_id=item.id) }}" onsubmit="return confirm('Delete this item?');">
+          <button class="px-3 py-1.5 rounded-xl bg-rose-600 text-white">Delete</button>
+        </form>
+        {% endif %}
+      </div>
     </div>
     <div class="text-sm text-slate-600 mt-1">Vendor: <b>{{ item.vendor or '-' }}</b> • PO: <b>{{ item.po_number or '-' }}</b> • SKU: <b>{{ item.sku or '-' }}</b></div>
     <div class="mt-2">
@@ -33,6 +40,10 @@
         <input name="url" placeholder="Paste link (Drive, photo, etc.)" class="border rounded-xl px-3 py-2 flex-1">
         <button class="px-3 py-2 rounded-xl bg-emerald-600 text-white">Add</button>
       </form>
+      <form method="post" action="{{ url_for('upload_file', item_id=item.id) }}" enctype="multipart/form-data" class="mt-2 flex gap-2 items-center">
+        <input type="file" name="file" accept="image/*,.pdf" class="border rounded-xl px-3 py-2" required />
+        <button class="px-3 py-2 rounded-xl bg-emerald-600 text-white">Upload</button>
+      </form>
 
       <div class="mt-6">
         <h3 class="font-semibold">Upload Photo/PDF to Drive (via Zap)</h3>
@@ -41,6 +52,23 @@
           <button class="px-3 py-2 rounded-xl bg-purple-600 text-white">Upload to Drive via Zap</button>
         </form>
         <p class="text-xs text-slate-500 mt-1">Sends the file to your Zap (OUTGOING_WEBHOOK_URL). The Zap uploads to Drive and calls back to <code>/zap/attach</code> to attach.</p>
+      </div>
+
+      <div class="mt-6">
+        <h3 class="font-semibold mb-2">Notes</h3>
+        {% if item.notes %}
+          <ul class="list-disc pl-6 text-sm">
+            {% for n in item.notes %}
+              <li>{{ n.content }} <span class="text-slate-500">({{ n.created_at.strftime('%Y-%m-%d %H:%M') }})</span></li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="text-sm text-slate-500">No notes yet.</div>
+        {% endif %}
+        <form method="post" action="{{ url_for('add_note', item_id=item.id) }}" class="mt-2 flex gap-2">
+          <input name="content" placeholder="Add note" class="border rounded-xl px-3 py-2 flex-1">
+          <button class="px-3 py-2 rounded-xl bg-slate-900 text-white">Add</button>
+        </form>
       </div>
 
       <div class="mt-3 flex gap-2">

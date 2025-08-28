@@ -11,7 +11,9 @@ A ready‑to‑run Flask web app to track damaged furniture across vendors, inge
 - **Dashboard**: filter/search by vendor, status, PO/SKU, date
 - **Manual entry** of damaged items
 - **Credits**: create credits (issued), apply credits to one or more items, see remaining balance
-- **Attachments**: store Google Drive links (or plain URLs) for photos
+- **Attachments**: store Google Drive links (or plain URLs) for photos and upload files manually
+- **Notes**: add internal notes/updates on each item
+- **Delete tickets**: admins can remove items when resolved or entered by mistake
 - **Email ingestion via Zapier**:
   - Gmail (Account A + Account B) → (optional) Upload attachments to Google Drive → **POST to `/zap/webhook`**
   - Flexible parser: finds `PO`, `SKU`, `Credit $123.45`, and basic intent in subject/body
@@ -125,7 +127,7 @@ Tables are auto‑created on startup with SQLAlchemy.
 
 - **Dashboard:** filter by Status/Vendor, search PO/SKU/Title
 - **New Item:** click “New Item” to enter manually (no email required)
-- **Item Detail:** add notes, change status, add attachment links
+- **Item Detail:** add notes, change status, upload attachments, and delete tickets
 - **Credits:**
   - “New Credit” creates a **credit pool** with a **remaining balance**
   - Apply all or part of a credit to one or more items
