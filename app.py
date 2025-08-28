@@ -35,10 +35,8 @@ app.secret_key = SECRET_KEY
 UPLOAD_FOLDER = os.path.join(app.root_path, "static", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-connect_args = {}
-if DATABASE_URL.startswith("sqlite"):
-    connect_args["check_same_thread"] = False
-elif DATABASE_URL.startswith("postgresql"):
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+if DATABASE_URL.startswith("postgresql"):
     connect_args["sslmode"] = "require"
 
 engine = create_engine(
