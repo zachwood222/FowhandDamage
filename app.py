@@ -35,11 +35,18 @@ app.secret_key = SECRET_KEY
 UPLOAD_FOLDER = os.path.join(app.root_path, "static", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+codex/add-workflows-for-images,-notes,-and-tickets-2cvt4m
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+if DATABASE_URL.startswith("postgresql"):
+    connect_args["sslmode"] = "require"
+
+main
 engine = create_engine(
     DATABASE_URL,
     echo=False,
     future=True,
-    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+    pool_pre_ping=True,
+    connect_args=connect_args,
 )
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False, future=True)
 Base = declarative_base()
