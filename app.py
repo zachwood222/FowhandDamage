@@ -11,6 +11,7 @@ from sqlalchemy import (
     create_engine, Column, Integer, String, Text, DateTime, Date, ForeignKey,
     Numeric, Boolean
 )
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 
 # ---------- Config ----------
@@ -24,7 +25,7 @@ def normalize_db_url(db_url: str | None) -> str:
         db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
     return db_url
 
-DATABASE_URL = normalize_db_url(os.getenv("DATABASE_URL"))
+PRIMARY_DATABASE_URL = normalize_db_url(os.getenv("DATABASE_URL"))
 SECRET_KEY = os.getenv("SECRET_KEY", "please-change-me")
 ZAPIER_SECRET = os.getenv("ZAPIER_SECRET", "")
 OUTGOING_WEBHOOK_URL = os.getenv("OUTGOING_WEBHOOK_URL", "")
@@ -36,18 +37,60 @@ UPLOAD_FOLDER = os.path.join(app.root_path, "static", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 ##codex/add-workflows-for-images,-notes,-and-tickets-2cvt4m
-connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
-if DATABASE_URL.startswith("postgresql"):
-    connect_args["sslmode"] = "require"
+
+# Attempt to connect to the primary database and gracefully fall back to a local
+# SQLite database if the connection fails (for example when a Postgres service
+# is not configured in the deployment environment).
+def iter_database_urls(primary_url: str) -> list[str]:
+    seen = set()
+    urls: list[str] = []
+    for candidate in [primary_url, "sqlite:///local.db"]:
+        if not candidate or candidate in seen:
+            continue
+        seen.add(candidate)
+        urls.append(candidate)
+    return urls
+
+
+def build_engine(db_url: str):
+    connect_args = {"check_same_thread": False} if db_url.startswith("sqlite") else {}
+    if db_url.startswith("postgresql"):
+        connect_args.setdefault("sslmode", "require")
+    engine = create_engine(
+        db_url,
+        echo=False,
+        future=True,
+        pool_pre_ping=True,
+        connect_args=connect_args,
+    )
+    with engine.connect() as conn:
+        conn.exec_driver_sql("SELECT 1")
+    return engine
+
+
+DATABASE_URL = None
+engine = None
+last_error: OperationalError | None = None
+
+for candidate_url in iter_database_urls(PRIMARY_DATABASE_URL):
+    try:
+        engine = build_engine(candidate_url)
+    except OperationalError as exc:  # type: ignore[assignment]
+        last_error = exc
+        continue
+    except Exception:
+        # Re-raise unexpected errors so they can be surfaced during debugging.
+        raise
+    else:
+        DATABASE_URL = candidate_url
+        if candidate_url != PRIMARY_DATABASE_URL:
+            print("Falling back to local SQLite database", flush=True)
+        break
+
+if engine is None or DATABASE_URL is None:
+    raise RuntimeError("Unable to connect to the database") from last_error
 
 ##main
-engine = create_engine(
-    DATABASE_URL,
-    echo=False,
-    future=True,
-    pool_pre_ping=True,
-    connect_args=connect_args,
-)
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False, future=True)
 Base = declarative_base()
 
